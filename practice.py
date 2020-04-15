@@ -11,11 +11,11 @@ import copy
 
 nphs = np.hstack
 # create the work table
-z0 = np.zeros((6,64))
+work_sheet = np.zeros((6,64))
 #initialize the begining of each possible work.
 for i in range(0, 32):
-    z0[0,2*i] = 20
-    z0[0,2*i+1] = 5
+    work_sheet[0,2*i] = 20
+    work_sheet[0,2*i+1] = 5
 # plan sheet determine the site which is yellable or not
 plan_sheet = np.zeros((32,5))
 plan_sheet[:16,0] = 1
@@ -31,65 +31,71 @@ for i in range(16):
 
 plan_sheet_t = np.transpose(plan_sheet)
 # fit all these work details
+# first column is the gain, second column is the cost.
+# Since there exist 2^5 = 32 situations for the plan_sheet was descripted.
+# There are 64 columns for each situation [(gain, cost), (gain, cost), ..., (gain, cost)].
 for j in range(0,32):
     gain = 80
     cost = 20
-    for i in range(1, len(z0)):
-        z0[i,2*j] = z0[i-1,2*j] + gain
-        z0[i,2*j+1] = z0[i-1,2*j+1] + cost
+    for i in range(1, len(work_sheet)):
+        work_sheet[i,2*j] = work_sheet[i-1,2*j] + gain
+        work_sheet[i,2*j+1] = work_sheet[i-1,2*j+1] + cost
         if i == 1:
             gain = 100
             cost = 25
-            z0[i,2*j] = z0[i,2*j] + 20
+            work_sheet[i,2*j] = work_sheet[i,2*j] + 20
             if plan_sheet[j,0] == 1:
-                z0[i,2*j] = z0[i,2*j] + 40
-                z0[i,2*j+1] = z0[i,2*j+1] + 20
+                work_sheet[i,2*j] = work_sheet[i,2*j] + 40
+                work_sheet[i,2*j+1] = work_sheet[i,2*j+1] + 20
         if i == 2:
-            z0[i,2*j] = z0[i,2*j] + 40
+            work_sheet[i,2*j] = work_sheet[i,2*j] + 40
             gain = 200
             cost = 100
             if plan_sheet[j,1] == 1:
-                z0[i,2*j] = z0[i,2*j] + 80
-                z0[i,2*j+1] = z0[i,2*j+1] + 40
+                work_sheet[i,2*j] = work_sheet[i,2*j] + 80
+                work_sheet[i,2*j+1] = work_sheet[i,2*j+1] + 40
         if i == 3:
-            z0[i,2*j] = z0[i,2*j] + 60
+            work_sheet[i,2*j] = work_sheet[i,2*j] + 60
             cost = 150
             if plan_sheet[j,2] == 1:
-                z0[i,2*j] = z0[i,2*j] + 240
-                z0[i,2*j+1] = z0[i,2*j+1] + 100
+                work_sheet[i,2*j] = work_sheet[i,2*j] + 240
+                work_sheet[i,2*j+1] = work_sheet[i,2*j+1] + 100
         if i == 4:
-            z0[i,2*j] = z0[i,2*j] + 60
+            work_sheet[i,2*j] = work_sheet[i,2*j] + 60
             cost = 200
             if plan_sheet[j,3] == 1:
-                z0[i,2*j] = z0[i,2*j] + 240
-                z0[i,2*j+1] = z0[i,2*j+1] + 100
+                work_sheet[i,2*j] = work_sheet[i,2*j] + 240
+                work_sheet[i,2*j+1] = work_sheet[i,2*j+1] + 100
         if i == 5:
-            z0[i,2*j] = z0[i,2*j] + 60
+            work_sheet[i,2*j] = work_sheet[i,2*j] + 60
             if plan_sheet[j,4] == 1:
-                z0[i,2*j] = z0[i,2*j] + 300
-                z0[i,2*j+1] = z0[i,2*j+1] + 120
+                work_sheet[i,2*j] = work_sheet[i,2*j] + 300
+                work_sheet[i,2*j+1] = work_sheet[i,2*j+1] + 120
 
-
+# collect variable gathering all the situations descript above, and the plans.
 collect = []
-collect.append([z0[0,0],z0[0,1], 0, plan_sheet[0,0],plan_sheet[0,1],plan_sheet[0,2],plan_sheet[0,3],plan_sheet[0,4]])
-for i in range(1,len(z0)):
+collect.append([work_sheet[0,0],work_sheet[0,1], 0, plan_sheet[0,0],plan_sheet[0,1],plan_sheet[0,2],plan_sheet[0,3],plan_sheet[0,4]])
+for i in range(1,len(work_sheet)):
     j = 2 ** i
     jump = np.int(64/j)
     jump_sec = np.int(32/j)
     for k in range(0,j):
-        collect.append([z0[i,k*jump], z0[i,k*jump + 1], i, plan_sheet[k*jump_sec,0],plan_sheet[k*jump_sec,1],plan_sheet[k*jump_sec,2],plan_sheet[k*jump_sec,3],plan_sheet[k*jump_sec,4]])
+        collect.append([work_sheet[i,k*jump], work_sheet[i,k*jump + 1], i, plan_sheet[k*jump_sec,0],plan_sheet[k*jump_sec,1],plan_sheet[k*jump_sec,2],plan_sheet[k*jump_sec,3],plan_sheet[k*jump_sec,4]])
 
 collect = np.float32(np.asarray(collect))
 
+# sort depend on the gain, others respect to the order of gain.
 go0 = sorted(range(len(collect[:,0])), key=lambda k: (collect[:,0])[k])
-sort00 = collect[go0,0]
-sort01 = collect[go0,1]
-sort02 = collect[go0,2]
-sort03 = collect[go0,3]
-sort04 = collect[go0,4]
-sort05 = collect[go0,5]
-sort06 = collect[go0,6]
-sort07 = collect[go0,7]
+sort00 = collect[go0,0] # gain
+sort01 = collect[go0,1] # cost
+sort02 = collect[go0,2] # steps
+sort03 = collect[go0,3] # position 1 was yelled or not
+sort04 = collect[go0,4] # position 2 was yelled or not
+sort05 = collect[go0,5] # position 3 was yelled or not
+sort06 = collect[go0,6] # position 4 was yelled or not
+sort07 = collect[go0,7] # position 5 was yelled or not
+
+# add the newaxis for the array operation.
 sort00 = sort00[:,np.newaxis]
 sort01 = sort01[:,np.newaxis]
 sort02 = sort02[:,np.newaxis]
@@ -99,9 +105,10 @@ sort05 = sort05[:,np.newaxis]
 sort06 = sort06[:,np.newaxis]
 sort07 = sort07[:,np.newaxis]
 
+# gathering all the data and sorted.
 sort = nphs((nphs((nphs((nphs((nphs((nphs((nphs((sort00, sort01)),sort02)),sort03)),sort04)),sort05)),sort06)),sort07))
 
-#same temp
+#delete the same case
 temp_init = sort[0,:]
 for i in range(1, len(sort)):
     temp = sort[i,:]
@@ -111,7 +118,7 @@ for i in range(1, len(sort)):
     temp_init = temp
 sort = sort[np.all(sort[:,0:2] != 0, axis=1)]  # delete the rows contain zero
 
-#cost is larger
+#delete the cost is larger case
 temp_init = sort[0,:]
 for i in range(1, len(sort)):
     temp = sort[i,:]
@@ -121,7 +128,7 @@ for i in range(1, len(sort)):
     temp_init = temp
 sort = sort[np.all(sort[:,0:2] != 0, axis=1)]  # delete the rows contain zero
 
-#cost is larger
+#delete the cost is larger again
 temp_init = sort[0,:]
 for i in range(1, len(sort)):
     temp = sort[i,:]
@@ -131,7 +138,7 @@ for i in range(1, len(sort)):
     temp_init = temp
 sort = sort[np.all(sort[:,0:2] != 0, axis=1)]  # delete the rows contain zero
 
-#same cost diff gain
+#delete the cases have same cost but diff gain, choose the good one stay in sort.
 temp_init = sort[0,:]
 for i in range(1, len(sort)):
     temp = sort[i,:]
@@ -140,7 +147,7 @@ for i in range(1, len(sort)):
         sort[i-1,1] = 0
     temp_init = temp
 sort = sort[np.all(sort[:,0:2] != 0, axis=1)]  # delete the rows contain zero
-#same gain diff cost
+#delete the cases have the same gain but diff cost, choose the good one stay in sort.
 temp_init = sort[-1,:]
 for i in range((len(sort)-2),0,-1):
     temp = sort[i,:]
@@ -149,11 +156,11 @@ for i in range((len(sort)-2),0,-1):
         sort[i+1,1] = 0
     temp_init = temp
 sort = sort[np.all(sort[:,0:2] != 0, axis=1)]  # delete the rows contain zero
-
+# All the cases in sort is unique. 
 sort_unique = sort
 diff00 = sort_unique[1:,0] - sort_unique[0:-1,0]
 diff01 = sort_unique[1:,1] - sort_unique[0:-1,1]
-
+# save the diff of data
 diff_real00 = np.zeros(len(sort_unique))
 diff_real00[0] = diff00[0]
 diff_real00[len(diff_real00) - 1] = diff00[len(diff00) - 1]
@@ -197,11 +204,13 @@ def roundoff(values, low, high):
             values[i] = low
     return values
         
-Mem = []
+report_sheets = []
+# 500 random cases
 for j in range(0, 500):
     cases = np.random.randint(len(sort_unique), size=7)
 
-    memory = []  
+    good_cases = []  
+    # each case use 250 iterations to update
     for i in range(0, 250):
         
         print('===')
@@ -213,12 +222,13 @@ for j in range(0, 500):
         print('gain', gains)
         print('cost', costs)
         print('2 cost', cfunction)
+        # if good enough, save the case.
         if gains >= 1e4 and costs < 4200:
         
-            memory.append(cases)
-            memory.append(gains)
-            memory.append(costs)
-            memory.append(cfunction)
+            good_cases.append(cases)
+            good_cases.append(gains)
+            good_cases.append(costs)
+            good_cases.append(cfunction)
         
         dcost_dxs = dcost_dx1(cases)
         
@@ -230,6 +240,7 @@ for j in range(0, 500):
         dcost_dxs_round = roundoff(dcost_dxs_round, -3, 3)
         print(dcost_dxs_round)
         cases_new = copy.copy(cases)
+        # update
         cases_new[np.int(i%7)] += dcost_dxs_round[np.int(i%7)]
         print('new',cases_new)
         cases_new = roundoff(cases_new, 0, (len(sort_unique)-1))
@@ -238,13 +249,14 @@ for j in range(0, 500):
         cases = cases_new
     
 
-
-    if len(memory) == 0:
+    # if nothing is collected, no result.
+    if len(good_cases) == 0:
         print('No result!!')
+    # the report sheet
     result = [] 
-    if len(memory)>0:
-        for i in range(0, np.int(len(memory)/4)):
-            case = memory[4*i]
+    if len(good_cases)>0:
+        for i in range(0, np.int(len(good_cases)/4)):
+            case = good_cases[4*i]
             gain_sum = 0
             cost_sum = 0
             steps_sum = 0
@@ -268,5 +280,5 @@ for j in range(0, 500):
             sum_result = [gain_sum, cost_sum, steps_sum, call1_sum, call2_sum, call3_sum, call4_sum, call5_sum]
             result.append(sum_result)
         result = np.asarray(result)
-        Mem.append(result)
+        report_sheets.append(result)
     
