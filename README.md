@@ -1,6 +1,6 @@
 # linear_programming_question_1
 
-The question is come from: 來源：奇點無限股份有限公司-演算法工程師筆試題目
+The question is come from:  https://gosaico.com : The interview problem
 The original site is: https://docs.google.com/document/d/1mhKLc4LEIVvP0jUudIO2_WpOFF7knHA6Agmgbi6if3E/edit
 
 One man sells some food on the street. The length of the street in the town is 4 Km. He walk 100 m can gain 20 dollars on average. 
